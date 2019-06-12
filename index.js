@@ -25,7 +25,7 @@ function isScalar (x) {
   return Buffer.isBuffer(x) && x.length === 32;
 }
 
-function isValidPrivateKey(privateKey) {
+function privateKeyVerify(privateKey) {
   if (!isScalar(privateKey))
   {
     return false;
@@ -93,7 +93,7 @@ function pad32(msg){
  */
 exports.generatePrivate = function() {
   var privateKey = crypto.randomBytes(32);
-  while (!isValidPrivateKey(privateKey)) {
+  while (!privateKeyVerify(privateKey)) {
     privateKey = crypto.randomBytes(32);
   }
   return privateKey;
@@ -107,7 +107,7 @@ exports.generatePrivate = function() {
  */
 var getPublic = exports.getPublic = function(privateKey) {
   assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assert(privateKeyVerify(privateKey), "Bad private key");
   // See https://github.com/wanderer/secp256k1-node/issues/46
   var compressed = secp256k1.publicKeyCreate(privateKey);
   return secp256k1.publicKeyConvert(compressed, false);
@@ -116,9 +116,9 @@ var getPublic = exports.getPublic = function(privateKey) {
 /**
  * Get compressed version of public key.
  */
-var getPublicCompressed = exports.getPublicCompressed = function(privateKey) { // jshint ignore:line
+var publicKeyCreate = exports.publicKeyCreate = function(privateKey) { // jshint ignore:line
   assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assert(privateKeyVerify(privateKey), "Bad private key");
   // See https://github.com/wanderer/secp256k1-node/issues/46
   return secp256k1.publicKeyCreate(privateKey);
 };
@@ -133,7 +133,7 @@ var getPublicCompressed = exports.getPublicCompressed = function(privateKey) { /
 exports.sign = function(privateKey, msg) {
   return new promise(function(resolve) {
     assert(privateKey.length === 32, "Bad private key");
-    assert(isValidPrivateKey(privateKey), "Bad private key");
+    assert(privateKeyVerify(privateKey), "Bad private key");
     assert(msg.length > 0, "Message should not be empty");
     assert(msg.length <= 32, "Message is too long");
     msg = pad32(msg);
@@ -174,7 +174,7 @@ exports.verify = function(publicKey, msg, sig) {
 var derive = exports.derive = function(privateKeyA, publicKeyB) {
   return new promise(function(resolve) {
     assert(privateKeyA.length === 32, "Bad private key");
-    assert(isValidPrivateKey(privateKeyA), "Bad private key");
+    assert(privateKeyVerify(privateKeyA), "Bad private key");
     resolve(ecdh.derive(privateKeyA, publicKeyB));
   });
 };
@@ -205,7 +205,7 @@ exports.encrypt = function(publicKeyTo, msg, opts) {
   return new promise(function(resolve) {
     var ephemPrivateKey = opts.ephemPrivateKey || crypto.randomBytes(32);
     // There is a very unlikely possibility that it is not a valid key
-    while(!isValidPrivateKey(ephemPrivateKey))
+    while(!privateKeyVerify(ephemPrivateKey))
     {
       ephemPrivateKey = opts.ephemPrivateKey || crypto.randomBytes(32);
     }
@@ -239,7 +239,7 @@ exports.encrypt = function(publicKeyTo, msg, opts) {
 exports.decrypt = function(privateKey, opts) {
   return derive(privateKey, opts.ephemPublicKey).then(function(Px) {
     assert(privateKey.length === 32, "Bad private key");
-    assert(isValidPrivateKey(privateKey), "Bad private key");
+    assert(privateKeyVerify(privateKey), "Bad private key");
     var hash = sha512(Px);
     var encryptionKey = hash.slice(0, 32);
     var macKey = hash.slice(32);

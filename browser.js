@@ -21,7 +21,7 @@ function isScalar (x) {
   return Buffer.isBuffer(x) && x.length === 32;
 }
 
-function isValidPrivateKey(privateKey) {
+function privateKeyVerify(privateKey) {
   if (!isScalar(privateKey))
   {
     return false;
@@ -120,7 +120,7 @@ function hmacSha256Verify(key, msg, sig) {
   */
 exports.generatePrivate = function () {
   var privateKey = randomBytes(32);
-  while (!isValidPrivateKey(privateKey)) {
+  while (!privateKeyVerify(privateKey)) {
     privateKey = randomBytes(32);
   }
   return privateKey;
@@ -129,7 +129,7 @@ exports.generatePrivate = function () {
 var getPublic = exports.getPublic = function(privateKey) {
   // This function has sync API so we throw an error immediately.
   assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assert(privateKeyVerify(privateKey), "Bad private key");
   // XXX(Kagami): `elliptic.utils.encode` returns array for every
   // encoding except `hex`.
   return Buffer.from(ec.keyFromPrivate(privateKey).getPublic("arr"));
@@ -138,9 +138,9 @@ var getPublic = exports.getPublic = function(privateKey) {
 /**
  * Get compressed version of public key.
  */
-var getPublicCompressed = exports.getPublicCompressed = function(privateKey) { // jshint ignore:line
+var publicKeyCreate = exports.publicKeyCreate = function(privateKey) { // jshint ignore:line
   assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assert(privateKeyVerify(privateKey), "Bad private key");
   // See https://github.com/wanderer/secp256k1-node/issues/46
   let compressed = true;
   return Buffer.from(ec.keyFromPrivate(privateKey).getPublic(compressed, "arr"));
@@ -154,7 +154,7 @@ var getPublicCompressed = exports.getPublicCompressed = function(privateKey) { /
 exports.sign = function(privateKey, msg) {
   return new Promise(function(resolve) {
     assert(privateKey.length === 32, "Bad private key");
-    assert(isValidPrivateKey(privateKey), "Bad private key");
+    assert(privateKeyVerify(privateKey), "Bad private key");
     assert(msg.length > 0, "Message should not be empty");
     assert(msg.length <= 32, "Message is too long");
     resolve(Buffer.from(ec.sign(msg, privateKey, {canonical: true}).toDER()));
@@ -187,7 +187,7 @@ var derive = exports.derive = function(privateKeyA, publicKeyB) {
     assert(Buffer.isBuffer(privateKeyA), "Bad private key");
     assert(Buffer.isBuffer(publicKeyB), "Bad public key");
     assert(privateKeyA.length === 32, "Bad private key");
-    assert(isValidPrivateKey(privateKeyA), "Bad private key");
+    assert(privateKeyVerify(privateKeyA), "Bad private key");
     assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key");
     if (publicKeyB.length === 65)
     {
@@ -211,7 +211,7 @@ exports.encrypt = function(publicKeyTo, msg, opts) {
   return new Promise(function(resolve) {
     var ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
     // There is a very unlikely possibility that it is not a valid key
-    while(!isValidPrivateKey(ephemPrivateKey))
+    while(!privateKeyVerify(ephemPrivateKey))
     {
       ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
     }

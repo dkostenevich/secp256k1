@@ -11,17 +11,17 @@ var shortMsg = createHash("sha1").update("test").digest();
 var privateKey = Buffer.alloc(32);
 privateKey.fill(1);
 var publicKey = eccrypto.getPublic(privateKey);
-var publicKeyCompressed = eccrypto.getPublicCompressed(privateKey);
+var publicKeyCompressed = eccrypto.publicKeyCreate(privateKey);
 
 var privateKeyA = Buffer.alloc(32);
 privateKeyA.fill(2);
 var publicKeyA = eccrypto.getPublic(privateKeyA);
-var publicKeyACompressed = eccrypto.getPublicCompressed(privateKeyA);
+var publicKeyACompressed = eccrypto.publicKeyCreate(privateKeyA);
 
 var privateKeyB = Buffer.alloc(32);
 privateKeyB.fill(3);
 var publicKeyB = eccrypto.getPublic(privateKeyB);
-var publicKeyBCompressed = eccrypto.getPublicCompressed(privateKeyB);
+var publicKeyBCompressed = eccrypto.publicKeyCreate(privateKeyB);
 
 describe("Key conversion", function() {
   it("should allow to convert private key to public", function() {
