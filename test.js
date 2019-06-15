@@ -3,7 +3,6 @@ var createHash = require("crypto").createHash;
 var eccrypto = require("./");
 
 var msg = createHash("sha256").update("test").digest();
-var shortMsg = createHash("sha1").update("test").digest();
 
 var privateKey = Buffer.alloc(32);
 privateKey.fill(1);
@@ -24,9 +23,8 @@ describe("Key conversion", function() {
 
 describe("ECDSA", function() {
   it("should allow to sign and verify message using a compressed public key", function() {
-    var sig = eccrypto.sign(privateKey, msg);
-    expect(Buffer.isBuffer(sig)).to.be.true;
-    expect(sig.toString("hex")).to.equal("3044022078c15897a34de6566a0d396fdef660698c59fef56d34ee36bef14ad89ee0f6f8022016e02e8b7285d93feafafbe745702f142973a77d5c2fa6293596357e17b3b47c");
-    return eccrypto.verify(publicKeyCompressed, msg, sig);
+    var sig = eccrypto.sign(msg, privateKey);
+    expect(sig.signature.toString("hex")).to.equal("78c15897a34de6566a0d396fdef660698c59fef56d34ee36bef14ad89ee0f6f816e02e8b7285d93feafafbe745702f142973a77d5c2fa6293596357e17b3b47c");
+    return eccrypto.verify(msg, sig.signature, publicKeyCompressed);
   });
 });
