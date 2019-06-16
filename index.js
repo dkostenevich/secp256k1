@@ -30,12 +30,11 @@ function privateKeyVerify(privateKey) {
 /**
  * Get compressed version of public key.
  */
-exports.publicKeyCreate = function(privateKey) { // jshint ignore:line
+exports.publicKeyCreate = function(privateKey, compressed) { // jshint ignore:line
   assert(privateKey.length === 32, "Bad private key");
   assert(privateKeyVerify(privateKey), "Bad private key");
   // See https://github.com/wanderer/secp256k1-node/issues/46
-  let compressed = true;
-  return Buffer.from(ec.keyFromPrivate(privateKey).getPublic(compressed, "arr"));
+  return Buffer.from(ec.keyFromPrivate(privateKey).getPublic(compressed, true));
 };
 
 exports.sign = function(msg, privateKey) {

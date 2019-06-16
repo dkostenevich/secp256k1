@@ -6,7 +6,7 @@ var msg = createHash("sha256").update("test").digest();
 
 var privateKey = Buffer.alloc(32);
 privateKey.fill(1);
-var publicKeyCompressed = eccrypto.publicKeyCreate(privateKey);
+var publicKeyCompressed = eccrypto.publicKeyCreate(privateKey, true);
 
 var privateKeyA = Buffer.alloc(32);
 privateKeyA.fill(2);
